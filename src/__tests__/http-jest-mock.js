@@ -3,10 +3,10 @@ import 'jest-dom/extend-expect'
 import 'react-testing-library/cleanup-after-each'
 
 // 0⃣ 🐨 you're going to need these
-// import React from 'react'
-// import {render, fireEvent, wait} from 'react-testing-library'
-// import {loadGreeting as mockLoadGreeting} from '../api'
-// import {GreetingLoader} from '../greeting-loader-01-mocking'
+import React from 'react'
+import {render, fireEvent, wait} from 'react-testing-library'
+import {loadGreeting as mockLoadGreeting} from '../api'
+import {GreetingLoader} from '../greeting-loader-01-mocking'
 
 // our component makes an HTTP request when you click on the load button.
 // we don't want it to do this for various reasons, so instead we'll mock
@@ -15,20 +15,35 @@ import 'react-testing-library/cleanup-after-each'
 // 4⃣ 🐨 use jest.mock to mock the '../api' module and return a fake `loadGreeting`:
 // 💯 jest.fn(subject => Promise.resolve({data: {greeting: `Hi ${subject}`}})
 
+jest.mock('../api', () => ({
+  loadGreeting: jest.fn(subject =>
+    Promise.resolve({data: {greeting: `Hi ${subject}`}}),
+  ),
+}))
+
 // 👀 notice this as an async test:
 test('loads greetings on click', async () => {
   // 1⃣ 🐨 render the GreetingLoader component
   //
+  const {getByLabelText, getByText, getByTestId} = render(
+    <GreetingLoader loadGreeting={mockLoadGreeting} />,
+  )
   // 2⃣ 🐨 set the name input's value to whatever you like
   //
+  getByLabelText('Name').value = 'whatever you like'
   // 3⃣ 🐨 use fireEvent to click on the load button
   //
+  fireEvent.click(getByText('Load Greeting'))
   // 5⃣ 🐨 make an assertion that your mocked loadGreeting function was called once
   // and that it was called with the value you set to the name input's value.
   //
+  expect(mockLoadGreeting).toHaveBeenCalledTimes(1)
   // 6⃣ 🐨 use react-testing-library's `wait` utility to wait until the `greeting`
   // node has the correct text content.
   // 📖 https://github.com/kentcdodds/react-testing-library/blob/b18ff5b96210a887e784b9f53bd886e11b6ed5e0/README.md#wait
+  await wait(() =>
+    expect(getByTestId('greeting')).toHaveTextContent('Hi whatever you like'),
+  )
 })
 
 //////// Elaboration & Feedback /////////
