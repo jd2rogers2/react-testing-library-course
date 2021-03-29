@@ -1,11 +1,13 @@
+// donzo
+
 // these should normally be in your jest setupTestFrameworkScriptFile
 import 'jest-dom/extend-expect'
 import 'react-testing-library/cleanup-after-each'
 
 // 0⃣ 🐨 you'll need these:
-// import React from 'react'
-// import {render, fireEvent} from 'react-testing-library'
-// import {HiddenMessage} from '../hidden-message'
+import React from 'react'
+import {render, fireEvent} from 'react-testing-library'
+import {HiddenMessage} from '../hidden-message'
 
 // Our component uses a react animation library called react-transition-group.
 // By its nature, this library does some interesting things to keep an element
@@ -20,25 +22,37 @@ import 'react-testing-library/cleanup-after-each'
 // 7⃣ 🐨 use jest.mock to mock out the react-transition-group component
 // 💯 jest.mock('react-transition-group', () => { /* return the mock object */ })
 // 📖 https://jestjs.io/docs/en/jest-object#jestmockmodulename-factory-options
+jest.mock('react-transition-group', () => {
+  return {
+    CSSTransition: jest.fn(props => (props.in ? props.children : '')),
+  }
+})
 
 test('shows hidden message when toggle is clicked', () => {
   // 1⃣ 🐨 render the HiddenMessage component with any message you want
+  const {getByText, queryByText} = render(<HiddenMessage>hi</HiddenMessage>)
   //
   // 2⃣ 🐨 get the toggle button
   // 💯 (use getByText)
+  const toggle = getByText('Toggle')
   //
   // 3⃣ 🐨 assert that the text you want to render is not in the document
   // 💯 (use `queryByText` and `not.toBeInTheDocument`)
   // 📖 https://github.com/gnapse/jest-dom#tobeinthedocument
+  expect(queryByText('hi')).not.toBeInTheDocument()
   //
   // 4⃣ 🐨 Use `fireEvent` to click on the button:
   // 📖 https://github.com/kentcdodds/react-testing-library/blob/b18ff5b96210a887e784b9f53bd886e11b6ed5e0/README.md#fireeventnode-htmlelement-event-event
   //
+  fireEvent.click(toggle)
   // 5⃣ 🐨 assert that your message is in the docuemnt
   //
+  expect(queryByText('hi')).toBeInTheDocument()
   // 6⃣ 🐨 click on the button again
   //
+  fireEvent.click(toggle)
   // 8⃣ 🐨 assert that your message is not in the docuemnt anymore
+  expect(queryByText('hi')).not.toBeInTheDocument()
 })
 
 //////// Elaboration & Feedback /////////
